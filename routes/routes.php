@@ -27,7 +27,12 @@ $partes = explode("/", $uri);
 // Obtenemos la parte anterior al último elemento de la URL.
 // En el ejemplo"proyectos/3, obtenemos "proyectos".
 $recurso = $partes[count($partes) - 2] ?? null;
-Response::json($recurso);
+
+
+//Response::json($recurso);       funciona cuando se documenta esto
+
+
+
 // Obtenemos el último elemento de la URL.
 // En"proyectos/3, obtenemos "3".
 // Si no existe, se utiliza null.

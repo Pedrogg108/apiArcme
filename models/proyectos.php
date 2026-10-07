@@ -35,11 +35,11 @@ class Proyecto extends Model { // hereda $pdo de Model
  }
  // Crea un nuevo producto en la base de datos.
  // Recibe los datos necesarios para crear el producto.
- public function create($titulo,$superficie,$ubicacion, $precio,$descripcion,$nomeclatura,$estado,$memoria,$fecha_inicio,$fecha_finalizacion) {
+ public function create($titulo,$superficie,$ubicacion, $precio,$descripcion,$nomenclatura,$estado,$memoria,$fecha_inicio,$fecha_finalizacion) {
  // Consulta SQL para insertar un nuevo registro
  // en la tabla proyectos.
- $sql = "INSERT INTO proyectos (titulo,superficie,ubicacion, precio,descripcion,nomeclatura,estado,memoria,fecha_inicio,finalizacion)
- VALUES ($:titulo,:superficie,:ubicacion, :precio,:descripcion,:nomeclatura,:estado,:memoria,:fecha_inicio,:fecha_finalizacion)";
+ $sql = "INSERT INTO proyectos (titulo,superficie,ubicacion, precio,descripcion,nomenclatura,estado,memoria,fecha_inicio,fecha_finalizacion)
+ VALUES (:titulo,:superficie,:ubicacion, :precio,:descripcion,:nomenclatura,:estado,:memoria,:fecha_inicio,:fecha_finalizacion)";
  // Preparamos la consulta antes de ejecutarla.
  $stmt = $this->pdo->prepare($sql);
  // Ejecutamos la consulta enviando los valores que corresponden a cada

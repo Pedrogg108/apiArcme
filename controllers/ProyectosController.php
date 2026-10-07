@@ -19,7 +19,7 @@ class ProyectosController {
  // Creamos un objeto de la clase Proyectos.
  // Proyectos hereda de Model y por eso puede utilizar
  // la conexión con la base de datos.
- $this->modelo = new Proyectos();
+ $this->modelo = new Proyecto();//aca estaba new Proyectos
  }
  // GET /proyectos
  //
@@ -39,14 +39,13 @@ class ProyectosController {
  public function verUno($id) {
  // Le pedimos al Model que busque el Proyectos
  // utilizando el ID recibido.
- $Proyectos = $this->modelo->getById($id);
+ $Proyectos = $this->modelo->getById_obra($id);
  // Comprobamos si el Proyectos fue encontrado.
  //
  // Si existe, lo enviamos con código 200.
  // Si no existe, enviamos un mensaje de error
  // con código 404 (recurso no encontrado).
- $Proyectos ? Response::json($Proyectos, 200): Response::json(["error"
-=> "Proyectos no encontrado"], 404);
+ $Proyectos ? Response::json($Proyectos, 200): Response::json(["error"=> "Proyectos no encontrado"], 404);
  }
  // POST /Proyectoss
  //
@@ -65,7 +64,7 @@ $datos["nomenclatura"],
 $datos["estado"],
 $datos["memoria"],
 $datos["fecha_inicio"],
-$datos["fecha_finalizacion"],
+$datos["fecha_finalizacion"]
 
 
 
