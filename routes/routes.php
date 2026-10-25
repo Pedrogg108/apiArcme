@@ -114,6 +114,7 @@ if ($ruta[0] === "proyectos") {
         $controller->eliminar($id);
         exit;
     }
+    
 
     // PATCH /proyectos/{id}/catalogo
     if (

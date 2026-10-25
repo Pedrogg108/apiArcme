@@ -111,12 +111,15 @@ class ProyectosController {
         ], 200);
     }
 
+
+    //Todo esto podria cambiar no se si anda
     // GET /catalogo
     public function listarCatalogo() {
         Response::json($this->modelo->getCatalogo(), 200);
     }
 
     // PATCH /proyectos/{id}/catalogo
+    //cambiar esto luego para q solo reciba id obra como parametro
     public function cambiarVisibilidad($id, $datos) {
 
         if (!isset($datos["visible_catalogo"])) {
