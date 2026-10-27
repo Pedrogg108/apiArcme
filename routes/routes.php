@@ -116,27 +116,16 @@ if ($ruta[0] === "proyectos") {
     }
     
 
+    
     // PATCH /proyectos/{id}/catalogo
-    if (
-        count($ruta) === 3 &&
-        $ruta[2] === "catalogo" &&
-        $metodo === "PATCH"
-    ) {
-        $datos = json_decode(
-            file_get_contents("php://input"),
-            true
-        );
-
-        if (!is_array($datos)) {
-            Response::json([
-                "error" => "El cuerpo debe contener un JSON válido"
-            ], 400);
-            exit;
-        }
-
-        $controller->cambiarVisibilidad($id, $datos);
-        exit;
-    }
+if (
+    count($ruta) === 3 &&
+    $ruta[2] === "catalogo" &&
+    $metodo === "PATCH"
+) {
+    $controller->cambiarVisibilidad($id);
+    exit;
+}
 }
 
 // Si el recurso existe, pero la combinación de ruta y método no.

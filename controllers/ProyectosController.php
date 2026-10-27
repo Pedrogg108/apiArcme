@@ -120,54 +120,28 @@ class ProyectosController {
 
     // PATCH /proyectos/{id}/catalogo
     //cambiar esto luego para q solo reciba id obra como parametro
-    public function cambiarVisibilidad($id, $datos) {
+    public function cambiarVisibilidad($id) {
 
-        if (!isset($datos["visible_catalogo"])) {
-            Response::json([
-                "error" => "Falta el campo visible_catalogo"
-            ], 400);
-            return;
-        }
+    $proyecto = $this->modelo->getByid_obra($id);
 
-        $visible = filter_var(
-            $datos["visible_catalogo"],
-            FILTER_VALIDATE_BOOLEAN,
-            FILTER_NULL_ON_FAILURE
-        );
-
-        if ($visible === null) {
-            Response::json([
-                "error" => "visible_catalogo debe ser true o false"
-            ], 400);
-            return;
-        }
-
-        $proyecto = $this->modelo->getByid_obra($id);
-
-        if (!$proyecto) {
-            Response::json([
-                "error" => "Proyecto no encontrado"
-            ], 404);
-            return;
-        }
-
-        $actualizado = $this->modelo->cambiarVisibilidadCatalogo(
-            $id,
-            $visible
-        );
-
-        if (!$actualizado) {
-            Response::json([
-                "error" => "No se pudo cambiar la visibilidad"
-            ], 500);
-            return;
-        }
-
+    if (!$proyecto) {
         Response::json([
-            "mensaje" => $visible
-                ? "Proyecto publicado en el catálogo"
-                : "Proyecto ocultado del catálogo",
-            "visible_catalogo" => $visible
-        ], 200);
+            "error" => "Proyecto no encontrado"
+        ], 404);
+        return;
+    }
+
+    $actualizado = $this->modelo->cambiarVisibilidadCatalogo($id);
+
+    if (!$actualizado) {
+        Response::json([
+            "error" => "No se pudo cambiar la visibilidad"
+        ], 500);
+        return;
+    }
+
+    Response::json([
+        "mensaje" => "Visibilidad del catálogo actualizada"
+    ], 200);
     }
 }

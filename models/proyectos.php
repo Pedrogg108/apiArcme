@@ -124,13 +124,12 @@ public function update($id_obra, $datos) {
     }
 
     // Publicar u ocultar un proyecto del catálogo.
-    public function cambiarVisibilidadCatalogo($id_obra,$visible) {
-        $sql = "UPDATE proyectos SET visible_catalogo = :visible WHERE id_obra = :id_obra";
+    public function cambiarVisibilidadCatalogo($id_obra) {
+        $sql = "UPDATE proyectos SET visible_catalogo = IF(visible_catalogo = 1,0,1) WHERE id_obra = :id_obra";
 
         $stmt = $this->pdo->prepare($sql);
 
         return $stmt->execute([
-            "visible" => $visible ? 1 : 0,
             "id_obra" => $id_obra
         ]);
     }
