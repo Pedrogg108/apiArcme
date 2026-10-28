@@ -7,14 +7,13 @@ require_once __DIR__ . "/../utils/response.php";
 // Obtener el método HTTP.
 $metodo = $_SERVER["REQUEST_METHOD"];
 
-// Obtener solamente la ruta, sin los parámetros de consulta (?).
+// Obtener la ruta sin los parámetros de consulta.
 $uri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 
 // Separar la URL en segmentos.
 $partes = explode("/", trim($uri, "/"));
 
-// Buscar dónde comienza el recurso de la API.
-// Esto permite tener un prefijo como /api_proyecto/public.
+// Buscar dónde comienza el recurso.
 $indice = null;
 
 foreach ($partes as $i => $parte) {
@@ -24,8 +23,11 @@ foreach ($partes as $i => $parte) {
     }
 }
 
+// Comprobar que la ruta sea válida.
 if ($indice === null) {
-    Response::json(["error" => "Ruta no válida"], 404);
+    Response::json([
+        "error" => "Ruta no válida"
+    ], 404);
     exit;
 }
 
@@ -36,7 +38,6 @@ $controller = new ProyectosController();
 
 
 // GET /catalogo
-// Obtener solamente los proyectos publicados.
 if ($ruta === ["catalogo"] && $metodo === "GET") {
     $controller->listarCatalogo();
     exit;
@@ -55,23 +56,37 @@ if ($ruta[0] === "proyectos") {
     // POST /proyectos
     if (count($ruta) === 1 && $metodo === "POST") {
 
-        $datos = json_decode(
-            file_get_contents("php://input"),
-            true
-        );
+        $contentType = $_SERVER["CONTENT_TYPE"] ?? "";
+
+        if (
+            stripos($contentType, "multipart/form-data") !== false
+        ) {
+            // Recibir campos y archivos enviados con FormData.
+            $datos = $_POST;
+            $archivos = $_FILES;
+
+        } else {
+            // Mantener compatibilidad con JSON.
+            $datos = json_decode(
+                file_get_contents("php://input"),
+                true
+            );
+
+            $archivos = [];
+        }
 
         if (!is_array($datos)) {
             Response::json([
-                "error" => "El cuerpo debe contener un JSON válido"
+                "error" => "El cuerpo de la petición no es válido"
             ], 400);
             exit;
         }
 
-        $controller->crear($datos);
+        $controller->crear($datos, $archivos);
         exit;
     }
 
-    // Las siguientes rutas necesitan un ID numérico.
+    // Comprobar el ID para las rutas siguientes.
     if (
         !isset($ruta[1]) ||
         !ctype_digit($ruta[1])
@@ -114,21 +129,19 @@ if ($ruta[0] === "proyectos") {
         $controller->eliminar($id);
         exit;
     }
-    
 
-    
     // PATCH /proyectos/{id}/catalogo
-if (
-    count($ruta) === 3 &&
-    $ruta[2] === "catalogo" &&
-    $metodo === "PATCH"
-) {
-    $controller->cambiarVisibilidad($id);
-    exit;
-}
+    if (
+        count($ruta) === 3 &&
+        $ruta[2] === "catalogo" &&
+        $metodo === "PATCH"
+    ) {
+        $controller->cambiarVisibilidad($id);
+        exit;
+    }
 }
 
-// Si el recurso existe, pero la combinación de ruta y método no.
+// Ruta o método no reconocido.
 Response::json([
     "error" => "Ruta o método HTTP no válido"
 ], 404);
