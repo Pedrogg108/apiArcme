@@ -1,15 +1,16 @@
 <?php
 // models/Evento.php
-// Este archivo habla con la base de datos. Solo tiene consultas SQL.
+// Este archivo habla con la base de datos nomas tiene consultas SQL trae el model de la carpeta core
 require_once __DIR__ . "/../core/model.php";
 
-// Evento hereda de Model, así que puede usar la conexión $this->pdo
+// crea la clase evento extends model significa que hereda todo del model
 class Evento extends Model {
 
-    // Trae todos los evento
+    // Trae todos los evento ( public function getAll se puede llamar desdeel exterior)
     public function getAll() {
         $sql = "SELECT * FROM evento";
         $resultado = $this->pdo->query($sql);
+        //ejecuta la consulta en la base de datos y guarda lo que respondió en $resultado
         return $resultado->fetchAll(PDO::FETCH_ASSOC);
     }
 
