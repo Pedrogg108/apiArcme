@@ -36,13 +36,11 @@ $ruta = array_slice($partes, $indice);
 
 $controller = new ProyectosController();
 
-
 // GET /catalogo
 if ($ruta === ["catalogo"] && $metodo === "GET") {
     $controller->listarCatalogo();
     exit;
 }
-
 
 // Rutas de proyectos.
 if ($ruta[0] === "proyectos") {
@@ -56,33 +54,19 @@ if ($ruta[0] === "proyectos") {
     // POST /proyectos
     if (count($ruta) === 1 && $metodo === "POST") {
 
-        $contentType = $_SERVER["CONTENT_TYPE"] ?? "";
-
-        if (
-            stripos($contentType, "multipart/form-data") !== false
-        ) {
-            // Recibir campos y archivos enviados con FormData.
-            $datos = $_POST;
-            $archivos = $_FILES;
-
-        } else {
-            // Mantener compatibilidad con JSON.
-            $datos = json_decode(
-                file_get_contents("php://input"),
-                true
-            );
-
-            $archivos = [];
-        }
+        $datos = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
 
         if (!is_array($datos)) {
             Response::json([
-                "error" => "El cuerpo de la petición no es válido"
+                "error" => "El cuerpo debe contener un JSON válido"
             ], 400);
             exit;
         }
 
-        $controller->crear($datos, $archivos);
+        $controller->crear($datos);
         exit;
     }
 
@@ -136,19 +120,7 @@ if ($ruta[0] === "proyectos") {
         $ruta[2] === "catalogo" &&
         $metodo === "PATCH"
     ) {
-        $datos = json_decode(
-            file_get_contents("php://input"),
-            true
-        );
-
-        if (!is_array($datos)) {
-            Response::json([
-                "error" => "El cuerpo debe contener un JSON válido"
-            ], 400);
-            exit;
-        }
-
-        $controller->cambiarVisibilidad($id, $datos);
+        $controller->cambiarVisibilidad($id);
         exit;
     }
 }

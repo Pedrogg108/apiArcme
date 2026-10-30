@@ -1,3 +1,4 @@
+
 <?php
 
 require_once __DIR__ . "/../models/proyectos.php";
@@ -32,9 +33,9 @@ class ProyectosController {
     }
 
     // POST /proyectos
-    public function crear($datos, $archivos = []) {
+    public function crear($datos) {
 
-        // Verificar que estén los campos obligatorios.
+        // Verificar los campos obligatorios.
         $campos = [
             "titulo",
             "superficie",
@@ -58,7 +59,7 @@ class ProyectosController {
             }
         }
 
-        // Crear el proyecto y recuperar su ID.
+        // Crear el proyecto.
         $id_obra = $this->modelo->create(
             $datos["titulo"],
             $datos["superficie"],
@@ -79,143 +80,9 @@ class ProyectosController {
             return;
         }
 
-        $fotosGuardadas = [];
-
-        // Procesar las fotografías si se enviaron.
-        if (
-            isset($archivos["fotos"]) &&
-            is_array($archivos["fotos"]["name"])
-        ) {
-
-            $fotos = $archivos["fotos"];
-
-            // Directorio físico donde se guardarán las imágenes.
-            $directorio = dirname(__DIR__) .
-                          "/public/uploads/proyectos";
-
-            if (
-                !is_dir($directorio) &&
-                !mkdir($directorio, 0755, true) &&
-                !is_dir($directorio)
-            ) {
-                Response::json([
-                    "error" => "No se pudo crear la carpeta de fotografías",
-                    "id_obra" => $id_obra
-                ], 500);
-                return;
-            }
-
-            // Tipos MIME permitidos.
-            $tiposPermitidos = [
-                "image/jpeg" => "jpg",
-                "image/png" => "png",
-                "image/webp" => "webp"
-            ];
-
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-
-            $orden = 1;
-
-            foreach ($fotos["name"] as $i => $nombreOriginal) {
-
-                // Ignorar espacios vacíos del selector.
-                if (
-                    !isset($fotos["error"][$i]) ||
-                    $fotos["error"][$i] === UPLOAD_ERR_NO_FILE
-                ) {
-                    continue;
-                }
-
-                if ($fotos["error"][$i] !== UPLOAD_ERR_OK) {
-                    Response::json([
-                        "error" => "Error al recibir una fotografía",
-                        "id_obra" => $id_obra
-                    ], 400);
-                    return;
-                }
-
-                $rutaTemporal = $fotos["tmp_name"][$i];
-
-                // Limitar cada imagen a 5 MB.
-                if ($fotos["size"][$i] > 5 * 1024 * 1024) {
-                    Response::json([
-                        "error" => "Cada fotografía debe pesar como máximo 5 MB",
-                        "id_obra" => $id_obra
-                    ], 400);
-                    return;
-                }
-
-                if (!is_uploaded_file($rutaTemporal)) {
-                    Response::json([
-                        "error" => "El archivo recibido no es válido",
-                        "id_obra" => $id_obra
-                    ], 400);
-                    return;
-                }
-
-                // Detectar el tipo real del archivo.
-                $mime = $finfo->file($rutaTemporal);
-
-                if (!isset($tiposPermitidos[$mime])) {
-                    Response::json([
-                        "error" => "Solo se permiten imágenes JPG, PNG y WEBP",
-                        "id_obra" => $id_obra
-                    ], 400);
-                    return;
-                }
-
-                // Generar un nombre que no dependa del nombre original.
-                $nombreArchivo = bin2hex(random_bytes(16)) .
-                                 "." . $tiposPermitidos[$mime];
-
-                $destino = $directorio . "/" . $nombreArchivo;
-
-                if (!move_uploaded_file($rutaTemporal, $destino)) {
-                    Response::json([
-                        "error" => "No se pudo guardar una fotografía",
-                        "id_obra" => $id_obra
-                    ], 500);
-                    return;
-                }
-
-                // Ruta pública que se guardará en MySQL.
-                $url = "/apiArcme/public/uploads/proyectos/" .
-                       $nombreArchivo;
-
-                // Registrar la fotografía en fotocobra.
-                $guardado = $this->modelo->agregarFoto(
-                    $id_obra,
-                    $url,
-                    $orden
-                );
-
-                if (!$guardado) {
-
-                    // Evitar dejar este archivo si falló el INSERT.
-                    if (is_file($destino)) {
-                        unlink($destino);
-                    }
-
-                    Response::json([
-                        "error" => "No se pudo registrar una fotografía en la base de datos",
-                        "id_obra" => $id_obra
-                    ], 500);
-                    return;
-                }
-
-                $fotosGuardadas[] = [
-                    "url" => $url,
-                    "orden" => $orden
-                ];
-
-                $orden++;
-            }
-        }
-
         Response::json([
             "mensaje" => "Proyecto creado correctamente",
-            "id_obra" => $id_obra,
-            "fotos" => $fotosGuardadas
+            "id_obra" => $id_obra
         ], 201);
     }
 
@@ -277,28 +144,7 @@ class ProyectosController {
     }
 
     // PATCH /proyectos/{id}/catalogo
-    //cambiar esto luego para q solo reciba id obra como parametro
-    public function cambiarVisibilidad($id, $datos) {
-
-        if (!isset($datos["visible_catalogo"])) {
-            Response::json([
-                "error" => "Falta el campo visible_catalogo"
-            ], 400);
-            return;
-        }
-
-        $visible = filter_var(
-            $datos["visible_catalogo"],
-            FILTER_VALIDATE_BOOLEAN,
-            FILTER_NULL_ON_FAILURE
-        );
-
-        if ($visible === null) {
-            Response::json([
-                "error" => "visible_catalogo debe ser true o false"
-            ], 400);
-            return;
-        }
+    public function cambiarVisibilidad($id) {
 
         $proyecto = $this->modelo->getByid_obra($id);
 
@@ -309,10 +155,7 @@ class ProyectosController {
             return;
         }
 
-        $actualizado = $this->modelo->cambiarVisibilidadCatalogo(
-            $id,
-            $visible
-        );
+        $actualizado = $this->modelo->cambiarVisibilidadCatalogo($id);
 
         if (!$actualizado) {
             Response::json([
@@ -322,10 +165,7 @@ class ProyectosController {
         }
 
         Response::json([
-            "mensaje" => $visible
-                ? "Proyecto publicado en el catálogo"
-                : "Proyecto ocultado del catálogo",
-            "visible_catalogo" => $visible
+            "mensaje" => "Visibilidad del catálogo actualizada"
         ], 200);
     }
 }
