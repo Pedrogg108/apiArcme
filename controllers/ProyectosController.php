@@ -277,7 +277,28 @@ class ProyectosController {
     }
 
     // PATCH /proyectos/{id}/catalogo
-    public function cambiarVisibilidad($id) {
+    //cambiar esto luego para q solo reciba id obra como parametro
+    public function cambiarVisibilidad($id, $datos) {
+
+        if (!isset($datos["visible_catalogo"])) {
+            Response::json([
+                "error" => "Falta el campo visible_catalogo"
+            ], 400);
+            return;
+        }
+
+        $visible = filter_var(
+            $datos["visible_catalogo"],
+            FILTER_VALIDATE_BOOLEAN,
+            FILTER_NULL_ON_FAILURE
+        );
+
+        if ($visible === null) {
+            Response::json([
+                "error" => "visible_catalogo debe ser true o false"
+            ], 400);
+            return;
+        }
 
         $proyecto = $this->modelo->getByid_obra($id);
 
@@ -288,7 +309,10 @@ class ProyectosController {
             return;
         }
 
-        $actualizado = $this->modelo->cambiarVisibilidadCatalogo($id);
+        $actualizado = $this->modelo->cambiarVisibilidadCatalogo(
+            $id,
+            $visible
+        );
 
         if (!$actualizado) {
             Response::json([
@@ -298,7 +322,10 @@ class ProyectosController {
         }
 
         Response::json([
-            "mensaje" => "Visibilidad del catálogo actualizada"
+            "mensaje" => $visible
+                ? "Proyecto publicado en el catálogo"
+                : "Proyecto ocultado del catálogo",
+            "visible_catalogo" => $visible
         ], 200);
     }
 }

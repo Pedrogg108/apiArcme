@@ -136,7 +136,19 @@ if ($ruta[0] === "proyectos") {
         $ruta[2] === "catalogo" &&
         $metodo === "PATCH"
     ) {
-        $controller->cambiarVisibilidad($id);
+        $datos = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
+
+        if (!is_array($datos)) {
+            Response::json([
+                "error" => "El cuerpo debe contener un JSON válido"
+            ], 400);
+            exit;
+        }
+
+        $controller->cambiarVisibilidad($id, $datos);
         exit;
     }
 }
