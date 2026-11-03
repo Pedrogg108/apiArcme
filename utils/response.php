@@ -7,7 +7,7 @@ class Response {
  //
  // El código 200 se utiliza por defecto cuando la solicitud se realizó
 //correctamente.
- public static function json($datos, $codigo = 200) {
+ public static function json($datos, $codigo = 200)  {
  // Establecemos el código de respuesta HTTP.
  // Por ejemplo:
  // 200 = solicitud exitosa.
