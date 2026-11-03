@@ -4,7 +4,7 @@ require_once __DIR__ . "/../core/model.php";
 // La clase Producto hereda de Model. Al heredar, también puede utilizar la
 //conexión $pdo que fue creada en la clase Model.
 
-class Proyecto extends Model {  // hereda $pdo de Model
+class Cliente extends Model {  // hereda $pdo de Model
 
     public function getAll() {
     // Consulta SQL para seleccionar todos los registros de la tabla clientes.
@@ -46,7 +46,7 @@ class Proyecto extends Model {  // hereda $pdo de Model
         "direccion" => $direccion,
         "ciudad" => $ciudad
     ]);
- 
+ }
 
     // Modifica los datos de un producto existente.
  // Recibe el id_obra del producto y un arreglo con los nuevos datos.
@@ -72,7 +72,7 @@ class Proyecto extends Model {  // hereda $pdo de Model
  $sql = "DELETE FROM clientes WHERE id_cliente = :id_cliente";
  // Preparamos la consulta.
  $stmt = $this->pdo->prepare($sql);
- // Enviamos el id_cliente del cñoemte y ejecutamos la consulta.
+ // Enviamos el id_cliente del cliente y ejecutamos la consulta.
  return $stmt->execute(["id_cliente" => $id_cliente]);
  }
 
@@ -81,7 +81,5 @@ class Proyecto extends Model {  // hereda $pdo de Model
 
 
 
-
-}
 
 ?>
