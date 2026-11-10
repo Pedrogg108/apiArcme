@@ -1,107 +1,311 @@
+
 <?php
-// routes/Routes.php
-// Incluimos el Controller de"proyectos porque
-// las rutas deberán indicar qué método del Controller
-// se debe ejecutar según la solicitud recibida.
+
 require_once __DIR__ . "/../controllers/ProyectosController.php";
-// Obtenemos el método HTTP utilizado en la solicitud.
-// Puede ser GET, POST, PUT o DELETE.
+require_once __DIR__ . "/../utils/response.php";
+
+// Obtener el método HTTP.
 $metodo = $_SERVER["REQUEST_METHOD"];
-// Obtenemos la URL que fue solicitada.
-// trim() elimina las barras "/" que aparecen
-// al principio y al final de la URL.
+
+// Obtener solamente la ruta, sin los parámetros de consulta (?).
+$uri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+
+// Separar la URL en segmentos.
+$partes = explode("/", trim($uri, "/"));
+
+// Buscar dónde comienza el recurso de la API.
+// Esto permite tener un prefijo como /api_proyecto/public.
+$indice = null;
+
+foreach ($partes as $i => $parte) {
+    if ($parte === "proyectos" || $parte === "catalogo") {
+        $indice = $i;
+        break;
+    }
+}
+
+if ($indice === null) {
+    Response::json(["error" => "Ruta no válida"], 404);
+    exit;
+}
+
+// Obtener los segmentos del recurso.
+$ruta = array_slice($partes, $indice);
+
+$controller = new ProyectosController();
+
+
+// GET /catalogo
+// Obtener solamente los proyectos publicados.
+if ($ruta === ["catalogo"] && $metodo === "GET") {
+    $controller->listarCatalogo();
+    exit;
+}
+
+
+// Rutas de proyectos.
+if ($ruta[0] === "proyectos") {
+
+    // GET /proyectos
+    if (count($ruta) === 1 && $metodo === "GET") {
+        $controller->listar();
+        exit;
+    }
+
+    // POST /proyectos
+    if (count($ruta) === 1 && $metodo === "POST") {
+
+        $datos = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
+
+        if (!is_array($datos)) {
+            Response::json([
+                "error" => "El cuerpo debe contener un JSON válido"
+            ], 400);
+            exit;
+        }
+
+        $controller->crear($datos);
+        exit;
+    }
+
+    // Las siguientes rutas necesitan un ID numérico.
+    if (
+        !isset($ruta[1]) ||
+        !ctype_digit($ruta[1])
+    ) {
+        Response::json([
+            "error" => "ID de proyecto no válido"
+        ], 400);
+        exit;
+    }
+
+    $id = (int) $ruta[1];
+
+    // GET /proyectos/{id}
+    if (count($ruta) === 2 && $metodo === "GET") {
+        $controller->verUno($id);
+        exit;
+    }
+
+    // PUT /proyectos/{id}
+    if (count($ruta) === 2 && $metodo === "PUT") {
+
+        $datos = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
+
+        if (!is_array($datos)) {
+            Response::json([
+                "error" => "El cuerpo debe contener un JSON válido"
+            ], 400);
+            exit;
+        }
+
+        $controller->editar($id, $datos);
+        exit;
+    }
+
+    // DELETE /proyectos/{id}
+    if (count($ruta) === 2 && $metodo === "DELETE") {
+        $controller->eliminar($id);
+        exit;
+    }
+
+    // PATCH /proyectos/{id}/catalogo
+    if (
+        count($ruta) === 3 &&
+        $ruta[2] === "catalogo" &&
+        $metodo === "PATCH"
+    ) {
+        $datos = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
+
+        if (!is_array($datos)) {
+            Response::json([
+                "error" => "El cuerpo debe contener un JSON válido"
+            ], 400);
+            exit;
+        }
+
+        $controller->cambiarVisibilidad($id, $datos);
+        exit;
+    }
+}
+
+// Si el recurso existe, pero la combinación de ruta y método no.
+Response::json([
+    "error" => "Ruta o método HTTP no válido"
+], 404);
+// Incluimos los Controllers
+require_once __DIR__ . "/../controllers/UsuarioController.php";
+require_once __DIR__ . "/../controllers/LoginController.php";
+
+// Obtenemos el método HTTP
+$metodo = $_SERVER["REQUEST_METHOD"];
+
+// Obtenemos la URL
 $uri = trim($_SERVER["REQUEST_URI"], "/");
-// Dividimos la URL en diferentes partes utilizando "/"
-// como separador.
-//
-// Por ejemplo:
-// api_proyecto/public"proyectos/3
-//
-// se convierte en:
-// ["api_proyecto", "public", "proyectos", "3"]
+
+// Dividimos la URL en partes
 $partes = explode("/", $uri);
-// Ejemplo esperado:
-// api_proyecto/public"proyectos
-// o
-// api_proyecto/public"proyectos/3
-// Obtenemos la parte anterior al último elemento de la URL.
-// En el ejemplo"proyectos/3, obtenemos "proyectos".
+
+// Obtenemos el recurso
 $recurso = $partes[count($partes) - 2] ?? null;
 
-
-//Response::json($recurso);       funciona cuando se documenta esto
-
-
-
-// Obtenemos el último elemento de la URL.
-// En"proyectos/3, obtenemos "3".
-// Si no existe, se utiliza null.
+// Obtenemos el último elemento de la URL
 $idOParametro = $partes[count($partes) - 1] ?? null;
-// Si idOParametro no es numérico,
-// significa que probablemente no tenemos un ID.
-// En ese caso, el último elemento corresponde al nombre
-// del recurso.
+
+// Identificamos la ruta completa para rutas con dos partes
+$rutaCompleta = implode("/", array_slice($partes, -2));
+
+// Si el último elemento no es numérico,
+// significa que es el nombre del recurso
 if (!is_numeric($idOParametro)) {
- // Guardamos el nombre del recurso.
- $recurso = $idOParametro;
- // Como no tenemos un ID numérico,
- // establecemos el valor como null.
- $idOParametro = null;
+    $recurso = $idOParametro;
+    $idOParametro = null;
 }
-// Comprobamos si el recurso solicitado
-// corresponde a "proyectos".
-if ($recurso === "proyectos") {
- // Creamos un objeto del Controller de"proyectos.
- // A través de este objeto podremos ejecutar
- // los métodos correspondientes.
- $controller = new ProyectosController();
- // Si el método HTTP es GET y no se recibió un ID,
- // significa que se están solicitando todos los"proyectos.
- if ($metodo === "GET" && $idOParametro === null) {
- // Ejecutamos el método listar() del Controller.
- $controller->listar();
- // Si el método HTTP es GET y existe un ID,
- // significa que se está solicitando un producto específico.
- } elseif ($metodo === "GET") {     
- // Ejecutamos verUno() enviando el ID recibido.
- $controller->verUno($idOParametro);
- // Si el método HTTP es POST,
- // significa que se quiere crear un nuevo producto.
- } elseif ($metodo === "POST") {
- // Obtenemos los datos enviados por el cliente
- // en el cuerpo de la solicitud.
- //
- // file_get_contents("php://input") obtiene
- // el contenido enviado.
- //
- // json_decode(..., true) convierte el JSON recibido
- // en un arreglo asociativo de PHP.
- $datos = json_decode(file_get_contents("php://input"), true);
- // Enviamos los datos al método crear()
- // del Controller.
- $controller->crear($datos);
- // Si el método HTTP es PUT,
- // significa que se quiere modificar un producto.
- } elseif ($metodo === "PUT") {
- // Obtenemos los datos enviados por el cliente
- // y los convertimos de JSON a un arreglo de PHP.
- $datos = json_decode(file_get_contents("php://input"), true);
- // Ejecutamos el método editar() del Controller.
- // Le enviamos el ID del producto y los nuevos datos.
- $controller->editar($idOParametro, $datos);
- // Si el método HTTP es DELETE,
- // significa que se quiere eliminar un producto.
- } elseif ($metodo === "DELETE") {
- // Ejecutamos el método eliminar()
- // enviando el ID del producto.
- $controller->eliminar($idOParametro);
- }
+
+// =========================================
+// SUBIR FOTO DE PERFIL
+// =========================================
+
+if ($rutaCompleta === "perfil/foto" && $metodo === "POST") {
+
+    $controller = new UsuarioController();
+    $controller->subirFoto();
+
+}
+
+// =========================================
+// RUTAS DE PROYECTOS
+// =========================================
+
+elseif ($recurso === "proyectos") {
+
+    $controller = new ProyectosController();
+
+    if ($metodo === "GET" && $idOParametro === null) {
+
+        $controller->listar();
+
+    } elseif ($metodo === "GET") {
+
+        $controller->verUno($idOParametro);
+
+    } elseif ($metodo === "POST") {
+
+        $datos = json_decode(file_get_contents("php://input"), true);
+
+        $controller->crear($datos);
+
+    } elseif ($metodo === "PUT") {
+
+        $datos = json_decode(file_get_contents("php://input"), true);
+
+        $controller->editar($idOParametro, $datos);
+
+    } elseif ($metodo === "DELETE") {
+
+        $controller->eliminar($idOParametro);
+
+    }
+
+// =========================================
+// REGISTRO DE USUARIOS
+// =========================================
+
+} elseif ($recurso === "usuarios" && $metodo === "POST") {
+
+    $controller = new UsuarioController();
+
+    $datos = json_decode(file_get_contents("php://input"), true);
+
+    if (!is_array($datos)) {
+        Response::json(["error" => "JSON inválido"], 400);
+        exit;
+    }
+
+    $controller->registro($datos);
+
+// =========================================
+// INICIAR SESIÓN
+// =========================================
+
+} elseif ($recurso === "login" && $metodo === "POST") {
+
+    $datos = json_decode(file_get_contents("php://input"), true);
+
+    $controller = new LoginController();
+    $controller->login($datos);
+
+// =========================================
+// CERRAR SESIÓN
+// =========================================
+
+} elseif ($recurso === "cerrar-sesion" && $metodo === "POST") {
+
+    $controller = new LoginController();
+    $controller->cerrarSesion();
+
+// =========================================
+// VERIFICAR SESIÓN
+// =========================================
+
+} elseif ($recurso === "verificar-sesion" && $metodo === "GET") {
+
+    $controller = new LoginController();
+    $controller->verificarSesion();
+
+// =========================================
+// OBTENER PERFIL
+// =========================================
+
+} elseif ($recurso === "perfil" && $metodo === "GET") {
+
+    $controller = new UsuarioController();
+    $controller->perfil();
+
+// =========================================
+// ACTUALIZAR PERFIL
+// =========================================
+
+} elseif ($recurso === "perfil" && $metodo === "PUT") {
+
+    $datos = json_decode(file_get_contents("php://input"), true);
+
+    if (!is_array($datos)) {
+        Response::json(["error" => "JSON inválido"], 400);
+        exit;
+    }
+
+    $controller = new UsuarioController();
+    $controller->actualizarPerfil($datos);
+
+// =========================================
+// VERIFICAR DNI
+// =========================================
+
+} elseif ($recurso === "verificar-dni" && $metodo === "POST") {
+
+    $datos = json_decode(file_get_contents("php://input"), true);
+
+    $controller = new UsuarioController();
+    $controller->verificarDni($datos);
+
+// =========================================
+// RUTA NO ENCONTRADA
+// =========================================
+
 } else {
- // Si el recurso solicitado no coincide con "proyectos",
- // enviamos un mensaje de error.
- //
- // El código 404 indica que la ruta o recurso
- // no fue encontrado.
- Response::json(["error" => "Ruta no válida"], 404);
+
+    Response::json(["error" => "Ruta no válida"], 404);
+
 }
+
 ?>

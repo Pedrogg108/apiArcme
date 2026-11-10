@@ -33,6 +33,8 @@ class Proyecto extends Model { // hereda $pdo de Model
 //asociativo.
  return $stmt->fetch(PDO::FETCH_ASSOC);
  }
+
+
  // Crea un nuevo producto en la base de datos.
  // Recibe los datos necesarios para crear el producto.
  public function create($titulo,$superficie,$ubicacion, $precio,$descripcion,$nomenclatura,$estado,$memoria,$fecha_inicio,$fecha_finalizacion) {
@@ -58,24 +60,46 @@ class Proyecto extends Model { // hereda $pdo de Model
 "fecha_finalizacion"=>$fecha_finalizacion,
  ]);
  }
+
+
+
  // Modifica los datos de un producto existente.
  // Recibe el id_obra del producto y un arreglo con los nuevos datos.
- public function update($id_obra, $datos) {
- // Consulta SQL para actualizar los datos del producto.
- // El WHERE permite indicar qué producto se debe modificar.
- $sql = "UPDATE proyectos SET titulo = :titulo, descripcion =
-:descripcion, precio = :precio, imagen = :imagen WHERE id_obra = :id_obra";
- // Preparamos la consulta.
- $stmt = $this->pdo->prepare($sql);
- // Ejecutamos la consulta enviando los nuevos valores.
- // Cada parámetro recibe el dato correspondiente
- // del arreglo $datos.
- Return $stmt->execute([
- "id_obra" =>$datos["id_obra"],"titulo" => $datos["titulo"],"superficie"=> $datos["superficie"] ,"ubicacion"=> $datos["ubicacion"],"precio" => $datos["precio"],"descripcion"=>$datos["descripcion"],
-  "nomenclatura" => $datos["nomenclatura"], "estado"=> $datos["estado"],"memoria" => $datos["memoria"],"fecha_inicio" => $datos["fecha_inicio"], "fecha_finalizacion" => $datos["fecha_finalizacion"]
 
- ]);
- }
+public function update($id_obra, $datos) {
+
+    $sql = "UPDATE proyectos SET
+                titulo = :titulo,
+                superficie = :superficie,
+                ubicacion = :ubicacion,
+                precio = :precio,
+                descripcion = :descripcion,
+                nomenclatura = :nomenclatura,
+                estado = :estado,
+                memoria = :memoria,
+                fecha_inicio = :fecha_inicio,
+                fecha_finalizacion = :fecha_finalizacion
+            WHERE id_obra = :id_obra";
+
+    $stmt = $this->pdo->prepare($sql);
+
+    return $stmt->execute([
+        "id_obra" => $id_obra,
+        "titulo" => $datos["titulo"],
+        "superficie" => $datos["superficie"],
+        "ubicacion" => $datos["ubicacion"],
+        "precio" => $datos["precio"],
+        "descripcion" => $datos["descripcion"],
+        "nomenclatura" => $datos["nomenclatura"],
+        "estado" => $datos["estado"],
+        "memoria" => $datos["memoria"],
+        "fecha_inicio" => $datos["fecha_inicio"],
+        "fecha_finalizacion" => $datos["fecha_finalizacion"]
+    ]);
+}
+
+
+
  // Elimina un producto de la base de datos.
  // Recibe como parámetro el id_obra del producto que se quiere eliminar.
  public function delete($id_obra) {
@@ -86,4 +110,29 @@ class Proyecto extends Model { // hereda $pdo de Model
  // Enviamos el id_obra del producto y ejecutamos la consulta.
  return $stmt->execute(["id_obra" => $id_obra]);
  }
+
+
+ 
+    // Obtener solamente los proyectos publicados en el catálogo.
+    public function getCatalogo() {
+        $sql = "SELECT * FROM proyectos
+                WHERE visible_catalogo = 1";
+
+        $resultado = $this->pdo->query($sql);
+
+        return $resultado->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Publicar u ocultar un proyecto del catálogo.
+    public function cambiarVisibilidadCatalogo($id_obra,$visible) {
+        $sql = "UPDATE proyectos SET visible_catalogo = :visible WHERE id_obra = :id_obra";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        return $stmt->execute([
+            "visible" => $visible ? 1 : 0,
+            "id_obra" => $id_obra
+        ]);
+    }
+
  }
