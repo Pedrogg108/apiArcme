@@ -51,20 +51,29 @@ class Cliente extends Model {  // hereda $pdo de Model
 
     // Modifica los datos de un producto existente.
  // Recibe el id_obra del producto y un arreglo con los nuevos datos.
- public function update($id_cliente, $datos) {
- // Consulta SQL para actualizar los datos del producto.
- // El WHERE permite indicar qué cliente se debe modificar.
- $sql = "UPDATE clientes SET nombre = :nombre, telefono = :telefono, direccion = :direccion, ciudad = :ciudad, correo = :correo WHERE id_cliente = :id_cliente";
- // Preparamos la consulta.
- $stmt = $this->pdo->prepare($sql);
- // Ejecutamos la consulta enviando los nuevos valores.
- // Cada parámetro recibe el dato correspondiente
- // del arreglo $datos.
- return $stmt->execute([
- "id_cliente" =>$datos["id_cliente"],"nombre" => $datos["nombre"],"telefono"=> $datos["telefono"] ,"direccion"=> $datos["direccion"],"ciudad" => $datos["ciudad"], "correo" => $datos["correo"]
 
- ]);
- }
+public function update($id_cliente, $datos) {
+
+    $sql = "UPDATE clientes SET
+        nombre = :nombre,
+        telefono = :telefono,
+        direccion = :direccion,
+        ciudad = :ciudad,
+        correo = :correo
+        WHERE id_cliente = :id_cliente";
+
+    $stmt = $this->pdo->prepare($sql);
+
+    return $stmt->execute([
+        "id_cliente" => $id_cliente,
+        "nombre" => $datos["nombre"],
+        "telefono" => $datos["telefono"],
+        "direccion" => $datos["direccion"],
+        "ciudad" => $datos["ciudad"],
+        "correo" => $datos["correo"]
+    ]);
+}
+
 
  // Elimina un producto de la base de datos.
  // Recibe como parámetro el id_cliente del cliente que se quiere eliminar.
