@@ -7,14 +7,13 @@ require_once __DIR__ . "/../utils/response.php";
 // Obtener el método HTTP.
 $metodo = $_SERVER["REQUEST_METHOD"];
 
-// Obtener solamente la ruta, sin los parámetros de consulta (?).
+// Obtener la ruta sin los parámetros de consulta.
 $uri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 
 // Separar la URL en segmentos.
 $partes = explode("/", trim($uri, "/"));
 
-// Buscar dónde comienza el recurso de la API.
-// Esto permite tener un prefijo como /api_proyecto/public.
+// Buscar dónde comienza el recurso.
 $indice = null;
 
 foreach ($partes as $i => $parte) {
@@ -24,8 +23,11 @@ foreach ($partes as $i => $parte) {
     }
 }
 
+// Comprobar que la ruta sea válida.
 if ($indice === null) {
-    Response::json(["error" => "Ruta no válida"], 404);
+    Response::json([
+        "error" => "Ruta no válida"
+    ], 404);
     exit;
 }
 
@@ -34,14 +36,11 @@ $ruta = array_slice($partes, $indice);
 
 $controller = new ProyectosController();
 
-
 // GET /catalogo
-// Obtener solamente los proyectos publicados.
 if ($ruta === ["catalogo"] && $metodo === "GET") {
     $controller->listarCatalogo();
     exit;
 }
-
 
 // Rutas de proyectos.
 if ($ruta[0] === "proyectos") {
@@ -71,7 +70,7 @@ if ($ruta[0] === "proyectos") {
         exit;
     }
 
-    // Las siguientes rutas necesitan un ID numérico.
+    // Comprobar el ID para las rutas siguientes.
     if (
         !isset($ruta[1]) ||
         !ctype_digit($ruta[1])
@@ -121,24 +120,12 @@ if ($ruta[0] === "proyectos") {
         $ruta[2] === "catalogo" &&
         $metodo === "PATCH"
     ) {
-        $datos = json_decode(
-            file_get_contents("php://input"),
-            true
-        );
-
-        if (!is_array($datos)) {
-            Response::json([
-                "error" => "El cuerpo debe contener un JSON válido"
-            ], 400);
-            exit;
-        }
-
-        $controller->cambiarVisibilidad($id, $datos);
+        $controller->cambiarVisibilidad($id);
         exit;
     }
 }
 
-// Si el recurso existe, pero la combinación de ruta y método no.
+// Ruta o método no reconocido.
 Response::json([
     "error" => "Ruta o método HTTP no válido"
 ], 404);

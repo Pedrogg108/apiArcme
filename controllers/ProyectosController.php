@@ -19,6 +19,7 @@ class ProyectosController {
 
     // GET /proyectos/{id}
     public function verUno($id) {
+
         $proyecto = $this->modelo->getByid_obra($id);
 
         if (!$proyecto) {
@@ -34,7 +35,32 @@ class ProyectosController {
     // POST /proyectos
     public function crear($datos) {
 
-        $creado = $this->modelo->create(
+        // Verificar los campos obligatorios.
+        $campos = [
+            "titulo",
+            "superficie",
+            "ubicacion",
+            "precio",
+            "descripcion",
+            "nomenclatura",
+            "estado",
+            "memoria",
+            "fecha_inicio",
+            "fecha_finalizacion"
+        ];
+
+        foreach ($campos as $campo) {
+
+            if (!array_key_exists($campo, $datos)) {
+                Response::json([
+                    "error" => "Falta el campo: " . $campo
+                ], 400);
+                return;
+            }
+        }
+
+        // Crear el proyecto.
+        $id_obra = $this->modelo->create(
             $datos["titulo"],
             $datos["superficie"],
             $datos["ubicacion"],
@@ -47,7 +73,7 @@ class ProyectosController {
             $datos["fecha_finalizacion"]
         );
 
-        if (!$creado) {
+        if (!$id_obra) {
             Response::json([
                 "error" => "No se pudo crear el proyecto"
             ], 500);
@@ -55,7 +81,8 @@ class ProyectosController {
         }
 
         Response::json([
-            "mensaje" => "Proyecto creado"
+            "mensaje" => "Proyecto creado correctamente",
+            "id_obra" => $id_obra
         ], 201);
     }
 
@@ -117,27 +144,7 @@ class ProyectosController {
     }
 
     // PATCH /proyectos/{id}/catalogo
-    public function cambiarVisibilidad($id, $datos) {
-
-        if (!isset($datos["visible_catalogo"])) {
-            Response::json([
-                "error" => "Falta el campo visible_catalogo"
-            ], 400);
-            return;
-        }
-
-        $visible = filter_var(
-            $datos["visible_catalogo"],
-            FILTER_VALIDATE_BOOLEAN,
-            FILTER_NULL_ON_FAILURE
-        );
-
-        if ($visible === null) {
-            Response::json([
-                "error" => "visible_catalogo debe ser true o false"
-            ], 400);
-            return;
-        }
+    public function cambiarVisibilidad($id) {
 
         $proyecto = $this->modelo->getByid_obra($id);
 
@@ -148,10 +155,7 @@ class ProyectosController {
             return;
         }
 
-        $actualizado = $this->modelo->cambiarVisibilidadCatalogo(
-            $id,
-            $visible
-        );
+        $actualizado = $this->modelo->cambiarVisibilidadCatalogo($id);
 
         if (!$actualizado) {
             Response::json([
@@ -161,10 +165,7 @@ class ProyectosController {
         }
 
         Response::json([
-            "mensaje" => $visible
-                ? "Proyecto publicado en el catálogo"
-                : "Proyecto ocultado del catálogo",
-            "visible_catalogo" => $visible
+            "mensaje" => "Visibilidad del catálogo actualizada"
         ], 200);
     }
 }

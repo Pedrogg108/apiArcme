@@ -15,9 +15,9 @@ class Bd {
 
  // Datos de conexión:
  // localhost: servidor donde está MySQL.
- // tienda: nombre de la base de datos.
+ // arcme: nombre de la base de datos.
  // utf8: permite trabajar correctamente con caracteres especiales.
- "mysql:host=localhost;dbname=arcme;charset=utf8",
+ "mysql:host=localhost;dbname=arcme;charset=utf8", 
  // Usuario de MySQL.
  "root",
  // Contraseña de MySQL.
