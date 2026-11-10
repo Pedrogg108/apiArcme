@@ -61,7 +61,8 @@ class ClientesController {
  $datos["nombre"],
 $datos["telefono"],
  $datos["direccion"],
-$datos["ciudad"]
+$datos["ciudad"],
+$datos["correo"]
 
  );
  // Informamos al usuario que el cliente fue creado correctamente.
