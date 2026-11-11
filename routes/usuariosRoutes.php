@@ -159,4 +159,3 @@ if ($ruta === ["verificar-dni"] && $metodo === "POST") {
 Response::json([
     "error" => "Ruta o método HTTP no válido"
 ], 404);
-

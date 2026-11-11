@@ -54,21 +54,32 @@ class ClientesController {
  //
  // Endpoint utilizado para crear un nuevo Cliente.
  // Esta operación estará disponible solamente para administradores.
- public function crearCliente($datos) {
- // Enviamos al Model los datos necesarios
- // para crear el nuevo Proyectos.
- $this->modelo->create(
- $datos["nombre"],
-$datos["telefono"],
- $datos["direccion"],
-$datos["ciudad"],
-$datos["correo"]
 
- );
- // Informamos al usuario que el cliente fue creado correctamente.
- // El código 201 significa "creado".
- Response::json(["mensaje" => "Cliente creado"], 201);
- }
+public function crearCliente($datos) {
+
+    $resultado = $this->modelo->create(
+        $datos["nombre"] ?? "",
+        $datos["telefono"] ?? null,
+        $datos["direccion"] ?? "",
+        $datos["ciudad"] ?? "",
+        $datos["correo"] ?? null
+    );
+
+    if ($resultado) {
+
+        Response::json([
+            "mensaje" => "Cliente creado correctamente"
+        ], 201);
+
+    } else {
+
+        Response::json([
+            "error" => "No se pudo crear el cliente"
+        ], 500);
+
+    }
+}
+
 
  // PUT /Cliente/{id}
  //
