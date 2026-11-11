@@ -1,7 +1,8 @@
+
 <?php
 
 header("Access-Control-Allow-Origin: http://localhost:4200");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -11,12 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . "/../utils/response.php";
 
-// Primero clientes
+// Cargar todas las rutas
 require_once __DIR__ . "/../routes/ClientesRoutes.php";
-
-// Después las demás rutas
+require_once __DIR__ . "/../routes/usuariosRoutes.php";
+require_once __DIR__ . "/../routes/routesAgenda.php";
 require_once __DIR__ . "/../routes/routes.php";
-
-
 
 ?>

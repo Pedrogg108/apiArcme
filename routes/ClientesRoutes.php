@@ -54,6 +54,10 @@ if ($recurso === "clientes") {
     }
 
     exit;
+
+    if ($posicion === false) {
+    return;
+}
 }
 
 ?>
