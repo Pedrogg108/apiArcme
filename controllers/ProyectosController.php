@@ -168,4 +168,48 @@ class ProyectosController {
             "mensaje" => "Visibilidad del catálogo actualizada"
         ], 200);
     }
+
+    // GET /proyectos/disponibles
+public function listarDisponibles() {
+    $proyectos = $this->modelo->getProyectosDisponibles();
+
+    Response::json($proyectos, 200);
+}
+
+
+// GET /proyectos/cliente/{id_cliente}
+public function listarPorCliente($id_cliente) {
+    $proyectos = $this->modelo->getByCliente($id_cliente);
+
+    Response::json($proyectos, 200);
+}
+
+
+// PATCH /proyectos/{id_obra}/vincular
+public function vincular($id_obra, $datos) {
+
+    if (empty($datos["id_cliente"])) {
+        Response::json([
+            "error" => "Debes indicar el cliente."
+        ], 400);
+        return;
+    }
+
+    $correcto = $this->modelo->vincularCliente(
+        $id_obra,
+        $datos["id_cliente"]
+    );
+
+    if (!$correcto) {
+        Response::json([
+            "error" => "La obra no está disponible o ya fue vinculada."
+        ], 409);
+        return;
+    }
+
+    Response::json([
+        "mensaje" => "Obra vinculada correctamente."
+    ], 200);
+}
+
 }

@@ -15,6 +15,7 @@ class Proyecto extends Model {
         return $resultado->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
     // Obtener un proyecto por su ID.
     public function getByid_obra($id_obra) {
 
@@ -28,6 +29,7 @@ class Proyecto extends Model {
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
 
     // Crear un proyecto.
     public function create(
@@ -89,6 +91,7 @@ class Proyecto extends Model {
         return $this->pdo->lastInsertId();
     }
 
+
     // Actualizar un proyecto.
     public function update($id_obra, $datos) {
 
@@ -122,44 +125,46 @@ class Proyecto extends Model {
         ]);
     }
 
-   // Eliminar un proyecto.
-public function delete($id_obra) {
 
-    try {
+    // Eliminar un proyecto.
+    public function delete($id_obra) {
 
-        $this->pdo->beginTransaction();
+        try {
 
-        // Eliminar los registros relacionados.
-        $sqlFotos = "DELETE FROM fotoobra WHERE id_obra = :id_obra";
+            $this->pdo->beginTransaction();
 
-        $stmtFotos = $this->pdo->prepare($sqlFotos);
+            // Eliminar los registros relacionados.
+            $sqlFotos = "DELETE FROM fotoobra WHERE id_obra = :id_obra";
 
-        $stmtFotos->execute([
-            "id_obra" => $id_obra
-        ]);
+            $stmtFotos = $this->pdo->prepare($sqlFotos);
 
-        // Eliminar el proyecto.
-        $sql = "DELETE FROM proyectos WHERE id_obra = :id_obra";
+            $stmtFotos->execute([
+                "id_obra" => $id_obra
+            ]);
 
-        $stmt = $this->pdo->prepare($sql);
+            // Eliminar el proyecto.
+            $sql = "DELETE FROM proyectos WHERE id_obra = :id_obra";
 
-        $stmt->execute([
-            "id_obra" => $id_obra
-        ]);
+            $stmt = $this->pdo->prepare($sql);
 
-        $this->pdo->commit();
+            $stmt->execute([
+                "id_obra" => $id_obra
+            ]);
 
-        return true;
+            $this->pdo->commit();
 
-    } catch (PDOException $e) {
+            return true;
 
-        if ($this->pdo->inTransaction()) {
-            $this->pdo->rollBack();
+        } catch (PDOException $e) {
+
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $e;
         }
-
-        throw $e;
     }
-}
+
 
     // Obtener los proyectos publicados en el catálogo.
     public function getCatalogo() {
@@ -172,6 +177,7 @@ public function delete($id_obra) {
 
         return $resultado->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
     // Alternar la visibilidad de un proyecto.
     public function cambiarVisibilidadCatalogo($id_obra) {
@@ -187,4 +193,58 @@ public function delete($id_obra) {
             "id_obra" => $id_obra
         ]);
     }
+
+
+    // Obtener proyectos disponibles para vincular.
+    public function getProyectosDisponibles() {
+
+        $sql = "SELECT * FROM proyectos
+                WHERE Vincular_cliente = 0
+                ORDER BY id_obra DESC";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    // Obtener proyectos vinculados a un cliente.
+    public function getByCliente($id_cliente) {
+
+        $sql = "SELECT * FROM proyectos
+                WHERE id_cliente = :id_cliente
+                AND Vincular_cliente = 1
+                ORDER BY id_obra DESC";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute([
+            "id_cliente" => $id_cliente
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    // Vincular un proyecto a un cliente.
+    public function vincularCliente($id_obra, $id_cliente) {
+
+        $sql = "UPDATE proyectos
+                SET id_cliente = :id_cliente,
+                    Vincular_cliente = 1
+                WHERE id_obra = :id_obra
+                AND Vincular_cliente = 0";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute([
+            "id_cliente" => $id_cliente,
+            "id_obra" => $id_obra
+        ]);
+
+        return $stmt->rowCount() > 0;
+    }
+
 }

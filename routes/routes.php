@@ -17,17 +17,21 @@ $partes = explode("/", trim($uri, "/"));
 $indice = null;
 
 foreach ($partes as $i => $parte) {
+
     if ($parte === "proyectos" || $parte === "catalogo") {
         $indice = $i;
         break;
     }
+
 }
 
 // Comprobar que la ruta sea válida.
 if ($indice === null) {
+
     Response::json([
         "error" => "Ruta no válida"
     ], 404);
+
     exit;
 }
 
@@ -36,20 +40,28 @@ $ruta = array_slice($partes, $indice);
 
 $controller = new ProyectosController();
 
+
 // GET /catalogo
 if ($ruta === ["catalogo"] && $metodo === "GET") {
+
     $controller->listarCatalogo();
+
     exit;
 }
+
 
 // Rutas de proyectos.
 if ($ruta[0] === "proyectos") {
 
+
     // GET /proyectos
     if (count($ruta) === 1 && $metodo === "GET") {
+
         $controller->listar();
+
         exit;
     }
+
 
     // POST /proyectos
     if (count($ruta) === 1 && $metodo === "POST") {
@@ -60,34 +72,71 @@ if ($ruta[0] === "proyectos") {
         );
 
         if (!is_array($datos)) {
+
             Response::json([
                 "error" => "El cuerpo debe contener un JSON válido"
             ], 400);
+
             exit;
         }
 
         $controller->crear($datos);
+
         exit;
     }
+
+
+    // GET /proyectos/disponibles
+    if (
+        count($ruta) === 2 &&
+        $ruta[1] === "disponibles" &&
+        $metodo === "GET"
+    ) {
+
+        $controller->listarDisponibles();
+
+        exit;
+    }
+
+
+    // GET /proyectos/cliente/{id_cliente}
+    if (
+        count($ruta) === 3 &&
+        $ruta[1] === "cliente" &&
+        ctype_digit($ruta[2]) &&
+        $metodo === "GET"
+    ) {
+
+        $controller->listarPorCliente((int) $ruta[2]);
+
+        exit;
+    }
+
 
     // Comprobar el ID para las rutas siguientes.
     if (
         !isset($ruta[1]) ||
         !ctype_digit($ruta[1])
     ) {
+
         Response::json([
             "error" => "ID de proyecto no válido"
         ], 400);
+
         exit;
     }
 
     $id = (int) $ruta[1];
 
+
     // GET /proyectos/{id}
     if (count($ruta) === 2 && $metodo === "GET") {
+
         $controller->verUno($id);
+
         exit;
     }
+
 
     // PUT /proyectos/{id}
     if (count($ruta) === 2 && $metodo === "PUT") {
@@ -98,21 +147,28 @@ if ($ruta[0] === "proyectos") {
         );
 
         if (!is_array($datos)) {
+
             Response::json([
                 "error" => "El cuerpo debe contener un JSON válido"
             ], 400);
+
             exit;
         }
 
         $controller->editar($id, $datos);
+
         exit;
     }
 
+
     // DELETE /proyectos/{id}
     if (count($ruta) === 2 && $metodo === "DELETE") {
+
         $controller->eliminar($id);
+
         exit;
     }
+
 
     // PATCH /proyectos/{id}/catalogo
     if (
@@ -120,12 +176,44 @@ if ($ruta[0] === "proyectos") {
         $ruta[2] === "catalogo" &&
         $metodo === "PATCH"
     ) {
+
         $controller->cambiarVisibilidad($id);
+
         exit;
     }
+
+
+    // PATCH /proyectos/{id}/vincular
+    if (
+        count($ruta) === 3 &&
+        $ruta[2] === "vincular" &&
+        $metodo === "PATCH"
+    ) {
+
+        $datos = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
+
+        if (!is_array($datos)) {
+
+            Response::json([
+                "error" => "El cuerpo debe contener un JSON válido"
+            ], 400);
+
+            exit;
+        }
+
+        $controller->vincular($id, $datos);
+
+        exit;
+    }
+
 }
+
 
 // Ruta o método no reconocido.
 Response::json([
     "error" => "Ruta o método HTTP no válido"
 ], 404);
+
