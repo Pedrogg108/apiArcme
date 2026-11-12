@@ -16,6 +16,7 @@ require_once __DIR__ . "/../utils/response.php";
 require_once __DIR__ . "/../routes/ClientesRoutes.php";
 require_once __DIR__ . "/../routes/usuariosRoutes.php";
 require_once __DIR__ . "/../routes/routesAgenda.php";
+//require_once __DIR__ ."/../routes/routesProveedores.php";
 require_once __DIR__ . "/../routes/routes.php";
 
 ?>
