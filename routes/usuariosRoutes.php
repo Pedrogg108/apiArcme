@@ -35,10 +35,7 @@ foreach ($partes as $i => $parte) {
 
 // Comprobar que la ruta sea válida
 if ($indice === null) {
-    Response::json([
-        "error" => "Ruta no válida"
-    ], 404);
-    exit;
+    return;
 }
 
 // Obtener los segmentos de la ruta
@@ -162,4 +159,3 @@ if ($ruta === ["verificar-dni"] && $metodo === "POST") {
 Response::json([
     "error" => "Ruta o método HTTP no válido"
 ], 404);
-

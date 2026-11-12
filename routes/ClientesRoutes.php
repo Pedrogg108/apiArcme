@@ -1,45 +1,63 @@
+
 <?php
+
 require_once __DIR__ . "/../controllers/ClientesController.php";
 
 $metodo = $_SERVER["REQUEST_METHOD"];
 
-// Limpiamos la URI obteniendo la ruta relativa después de public/
+// Obtener la ruta solicitada
 $scriptName = dirname($_SERVER['SCRIPT_NAME']);
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
 $path = str_replace($scriptName, '', $requestUri);
 $path = trim($path, '/');
 
-// Si la URL pasa por index.php, lo removemos del path
+// Eliminar index.php si aparece en la ruta
 $path = preg_replace('/^index\.php\/?/', '', $path);
 
 $partes = explode('/', $path);
+
 $recurso = $partes[0] ?? null;
 $idOParametro = $partes[1] ?? null;
 
-// Si la ruta pertenece a clientes, limpiamos la salida previa de otros archivos
+// Comprobar si la ruta pertenece a clientes
 if ($recurso === "clientes") {
-    // Si algún archivo previo (como routes.php) imprimió un error, borramos la salida previa
-    if (ob_get_length()) {
-        ob_clean();
-    }
 
     $controller = new ClientesController();
 
     if ($metodo === "GET" && $idOParametro === null) {
+
         $controller->listarClientes();
-    } elseif ($metodo === "GET") {     
+
+    } elseif ($metodo === "GET" && $idOParametro !== null) {
+
         $controller->verUnCliente($idOParametro);
-    } elseif ($metodo === "POST") {
+
+    } elseif ($metodo === "POST" && $idOParametro === null) {
+
         $datos = json_decode(file_get_contents("php://input"), true);
         $controller->crearCliente($datos);
-    } elseif ($metodo === "PUT") {
+
+    } elseif ($metodo === "PUT" && $idOParametro !== null) {
+
         $datos = json_decode(file_get_contents("php://input"), true);
         $controller->editarCliente($idOParametro, $datos);
-    } elseif ($metodo === "DELETE") {
+
+    } elseif ($metodo === "DELETE" && $idOParametro !== null) {
+
         $controller->eliminarCliente($idOParametro);
+
+    } else {
+
+        Response::json(["error" => "Método o ruta no permitidos"], 405);
+
     }
-    
-    // Finalizamos la ejecución para evitar que se sigan procesando otros scripts
+
     exit;
+
+    if ($posicion === false) {
+    return;
 }
+}
+
 ?>

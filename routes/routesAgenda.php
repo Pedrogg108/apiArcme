@@ -23,6 +23,8 @@ if ($posicion === false) {
     return;
 }
 
+
+
 // Lo que viene después de "agenda" es sacar el id (puede no tener id)
 $id = $partes[$posicion + 1] ?? null;
 
@@ -47,6 +49,8 @@ if ($metodo === "GET" && $id === null) {
 } else {
     Response::json(["error" => "Ruta no válida"], 404);
 }
+
+
 
 // Cortamos aca para que el archivo principal no siga y no responda dos veces
 //tucumana gonzalez
