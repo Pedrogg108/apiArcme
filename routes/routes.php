@@ -70,6 +70,27 @@ if ($ruta[0] === "proyectos") {
         exit;
     }
 
+    // POST /proyectos/memoria
+if (
+    count($ruta) === 2 &&
+    $ruta[1] === "memoria" &&
+    $metodo === "POST"
+) {
+    $controller->subirMemoria();
+    exit;
+}
+
+// Comprobar el ID para las rutas siguientes.
+if (
+    !isset($ruta[1]) ||
+    !ctype_digit($ruta[1])
+) {
+    Response::json([
+        "error" => "ID de proyecto no válido"
+    ], 400);
+    exit;
+}
+
     // Comprobar el ID para las rutas siguientes.
     if (
         !isset($ruta[1]) ||

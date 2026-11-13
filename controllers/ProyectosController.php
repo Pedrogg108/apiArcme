@@ -143,6 +143,71 @@ class ProyectosController {
         Response::json($this->modelo->getCatalogo(), 200);
     }
 
+    // POST /proyectos/memoria
+    public function subirMemoria() {
+
+        // Verificar que se haya enviado un archivo.
+        if (!isset($_FILES["memoria"])) {
+            Response::json([
+                "error" => "No se seleccionó ningún archivo"
+            ], 400);
+            return;
+        }
+
+        $archivo = $_FILES["memoria"];
+
+        if ($archivo["error"] !== UPLOAD_ERR_OK) {
+            Response::json([
+                "error" => "Error al subir el archivo"
+            ], 400);
+            return;
+        }
+
+        // Limitar el tamaño a 10 MB.
+        if ($archivo["size"] > 10 * 1024 * 1024) {
+            Response::json([
+                "error" => "El archivo no puede superar los 10 MB"
+            ], 400);
+            return;
+        }
+
+        // Comprobar el tipo real del archivo.
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $tipo = $finfo->file($archivo["tmp_name"]);
+
+        if ($tipo !== "application/pdf") {
+            Response::json([
+                "error" => "El archivo debe ser un PDF"
+            ], 400);
+            return;
+        }
+
+        // Crear la carpeta si todavía no existe.
+        $carpeta = __DIR__ . "/../public/uploads/memorias/";
+
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0755, true);
+        }
+
+        // Generar un nombre único para el PDF.
+        $nombreArchivo = bin2hex(random_bytes(16)) . ".pdf";
+
+        $destino = $carpeta . $nombreArchivo;
+
+        // Guardar el archivo en el servidor.
+        if (!move_uploaded_file($archivo["tmp_name"], $destino)) {
+            Response::json([
+                "error" => "No se pudo guardar el archivo"
+            ], 500);
+            return;
+        }
+
+        Response::json([
+            "mensaje" => "Memoria subida correctamente",
+            "memoria" => "uploads/memorias/" . $nombreArchivo
+        ], 201);
+    }
+
     // PATCH /proyectos/{id}/catalogo
     public function cambiarVisibilidad($id) {
 
