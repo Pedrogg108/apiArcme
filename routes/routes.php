@@ -80,16 +80,18 @@ if (
     exit;
 }
 
-// Comprobar el ID para las rutas siguientes.
+    // POST /proyectos/portada
 if (
-    !isset($ruta[1]) ||
-    !ctype_digit($ruta[1])
+    count($ruta) === 2 &&
+    $ruta[1] === "portada" &&
+    $metodo === "POST"
 ) {
-    Response::json([
-        "error" => "ID de proyecto no válido"
-    ], 400);
+    $controller->subirPortada();
     exit;
 }
+
+
+
 
     // Comprobar el ID para las rutas siguientes.
     if (

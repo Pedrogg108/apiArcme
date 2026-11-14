@@ -46,7 +46,8 @@ class ProyectosController {
             "estado",
             "memoria",
             "fecha_inicio",
-            "fecha_finalizacion"
+            "fecha_finalizacion",
+            "portada"
         ];
 
         foreach ($campos as $campo) {
@@ -70,7 +71,8 @@ class ProyectosController {
             $datos["estado"],
             $datos["memoria"],
             $datos["fecha_inicio"],
-            $datos["fecha_finalizacion"]
+            $datos["fecha_finalizacion"],
+            $datos["portada"]
         );
 
         if (!$id_obra) {
@@ -205,6 +207,76 @@ class ProyectosController {
         Response::json([
             "mensaje" => "Memoria subida correctamente",
             "memoria" => "uploads/memorias/" . $nombreArchivo
+        ], 201);
+    }
+
+
+    public function subirPortada(){
+    
+        // Verificar que se haya enviado un archivo.
+        if (!isset($_FILES["portada"])) {
+            Response::json([
+                "error" => "No se seleccionó ningún archivo"
+            ], 400);
+            return;
+        }
+
+        $archivoImg = $_FILES["portada"];
+
+        if ($archivoImg["error"] !== UPLOAD_ERR_OK) {
+            Response::json([
+                "error" => "Error al subir el archivo"
+            ], 400);
+            return;
+        }
+
+        // Limitar el tamaño a 50 MB.
+        if ($archivoImg["size"] > 50 * 1024 * 1024) {
+            Response::json([
+                "error" => "El archivo no puede superar los 50 MB"
+            ], 400);
+            return;
+        }
+
+        // Comprobar el tipo real del archivo.
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $tipo = $finfo->file($archivoImg["tmp_name"]);
+
+        if ($tipo !== "image/png" && $tipo!== "image/jpeg" && $tipo!== "image/webp") {
+            Response::json([
+                "error" => "El archivo debe ser un png, jpeg o webp"
+            ], 400);
+            return;
+        }
+
+        // Crear la carpeta si todavía no existe.
+        $carpeta = __DIR__ . "/../public/uploads/proyectosImg/";
+
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0755, true);
+        }
+
+        // Generar un nombre único para portada.
+        $extensiones = [
+            "image/png" => "png",
+           "image/jpeg" => "jpg",
+         "image/webp" => "webp"
+        ];
+
+        $nombrePortada = bin2hex(random_bytes(16)) . "." . $extensiones[$tipo];
+
+        $destino = $carpeta . $nombrePortada;
+        // Guardar el archivo en el servidor.
+        if (!move_uploaded_file($archivoImg["tmp_name"], $destino)) {
+            Response::json([
+                "error" => "No se pudo guardar el archivo"
+            ], 500);
+            return;
+        }
+
+        Response::json([
+            "mensaje" => "Portada subida correctamente",
+            "portada" => "uploads/proyectosImg/" . $nombrePortada
         ], 201);
     }
 

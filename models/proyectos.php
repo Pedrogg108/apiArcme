@@ -40,7 +40,8 @@ class Proyecto extends Model {
         $estado,
         $memoria,
         $fecha_inicio,
-        $fecha_finalizacion
+        $fecha_finalizacion,
+        $portada
     ) {
 
         $sql = "INSERT INTO proyectos (
@@ -53,7 +54,8 @@ class Proyecto extends Model {
                     estado,
                     memoria,
                     fecha_inicio,
-                    fecha_finalizacion
+                    fecha_finalizacion,
+                    portada
                 ) VALUES (
                     :titulo,
                     :superficie,
@@ -64,7 +66,8 @@ class Proyecto extends Model {
                     :estado,
                     :memoria,
                     :fecha_inicio,
-                    :fecha_finalizacion
+                    :fecha_finalizacion,
+                    :portada
                 )";
 
         $stmt = $this->pdo->prepare($sql);
@@ -79,7 +82,8 @@ class Proyecto extends Model {
             "estado" => $estado,
             "memoria" => $memoria,
             "fecha_inicio" => $fecha_inicio,
-            "fecha_finalizacion" => $fecha_finalizacion
+            "fecha_finalizacion" => $fecha_finalizacion,
+            "portada"=>$portada
         ]);
 
         if (!$correcto) {
@@ -102,7 +106,8 @@ class Proyecto extends Model {
                     estado = :estado,
                     memoria = :memoria,
                     fecha_inicio = :fecha_inicio,
-                    fecha_finalizacion = :fecha_finalizacion
+                    fecha_finalizacion = :fecha_finalizacion,
+                    portada = :portada
                 WHERE id_obra = :id_obra";
 
         $stmt = $this->pdo->prepare($sql);
@@ -118,6 +123,7 @@ class Proyecto extends Model {
             "memoria" => $datos["memoria"],
             "fecha_inicio" => $datos["fecha_inicio"],
             "fecha_finalizacion" => $datos["fecha_finalizacion"],
+            "portada" =>$datos["portada"],
             "id_obra" => $id_obra
         ]);
     }
@@ -128,15 +134,6 @@ public function delete($id_obra) {
     try {
 
         $this->pdo->beginTransaction();
-
-        // Eliminar los registros relacionados.
-        $sqlFotos = "DELETE FROM fotoobra WHERE id_obra = :id_obra";
-
-        $stmtFotos = $this->pdo->prepare($sqlFotos);
-
-        $stmtFotos->execute([
-            "id_obra" => $id_obra
-        ]);
 
         // Eliminar el proyecto.
         $sql = "DELETE FROM proyectos WHERE id_obra = :id_obra";
