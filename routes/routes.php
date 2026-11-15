@@ -70,6 +70,40 @@ if ($ruta[0] === "proyectos") {
         exit;
     }
 
+    // POST /proyectos/memoria
+if (
+    count($ruta) === 2 &&
+    $ruta[1] === "memoria" &&
+    $metodo === "POST"
+) {
+    $controller->subirMemoria();
+    exit;
+}
+
+    // POST /proyectos/portada
+if (
+    count($ruta) === 2 &&
+    $ruta[1] === "portada" &&
+    $metodo === "POST"
+) {
+    $controller->subirPortada();
+    exit;
+}
+
+// GET /proyectos/cliente/{id_cliente}
+if (
+    count($ruta) === 3 &&
+    $ruta[1] === "cliente" &&
+    ctype_digit($ruta[2]) &&
+    $metodo === "GET"
+) {
+    $id_cliente = (int) $ruta[2];
+
+    $controller->listarPorCliente($id_cliente);
+    exit;
+}
+
+
     // Comprobar el ID para las rutas siguientes.
     if (
         !isset($ruta[1]) ||
@@ -113,6 +147,15 @@ if ($ruta[0] === "proyectos") {
         $controller->eliminar($id);
         exit;
     }
+    // POST /proyectos/{id}/fotosExtra
+    if (
+        count($ruta) === 3 &&
+        $ruta[2] === "fotosExtra" &&
+        $metodo === "POST"
+    ) {
+        $controller->subirFotosExtra($id);
+        exit;
+    }
 
     // PATCH /proyectos/{id}/catalogo
     if (
@@ -123,8 +166,9 @@ if ($ruta[0] === "proyectos") {
         $controller->cambiarVisibilidad($id);
         exit;
     }
-}
 
+    
+}
 // Ruta o método no reconocido.
 Response::json([
     "error" => "Ruta o método HTTP no válido"
