@@ -136,6 +136,15 @@ if (
         $controller->eliminar($id);
         exit;
     }
+    // POST /proyectos/{id}/fotosExtra
+    if (
+        count($ruta) === 3 &&
+        $ruta[2] === "fotosExtra" &&
+        $metodo === "POST"
+    ) {
+        $controller->subirFotosExtra($id);
+        exit;
+    }
 
     // PATCH /proyectos/{id}/catalogo
     if (
@@ -146,8 +155,9 @@ if (
         $controller->cambiarVisibilidad($id);
         exit;
     }
-}
 
+    
+}
 // Ruta o método no reconocido.
 Response::json([
     "error" => "Ruta o método HTTP no válido"

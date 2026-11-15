@@ -20,99 +20,144 @@ class ProyectosController {
     // GET /proyectos/{id}
     public function verUno($id) {
 
-        $proyecto = $this->modelo->getByid_obra($id);
+    $proyecto = $this->modelo->getByid_obra($id);
 
-        if (!$proyecto) {
-            Response::json([
-                "error" => "Proyecto no encontrado"
-            ], 404);
-            return;
-        }
-
-        Response::json($proyecto, 200);
+    if (!$proyecto) {
+        Response::json([
+            "error" => "Proyecto no encontrado"
+        ], 404);
+        return;
     }
 
+    $proyecto["fotos"] = $this->modelo->getFotos($id);
+
+    Response::json($proyecto, 200);
+    }
     // POST /proyectos
-    public function crear($datos) {
+    // POST /proyectos
+public function crear($datos) {
 
-        // Verificar los campos obligatorios.
-        $campos = [
-            "titulo",
-            "superficie",
-            "ubicacion",
-            "precio",
-            "descripcion",
-            "nomenclatura",
-            "estado",
-            "memoria",
-            "fecha_inicio",
-            "fecha_finalizacion",
-            "portada"
-        ];
+    // Verificar los campos obligatorios.
+    $campos = [
+        "titulo",
+        "superficie",
+        "ubicacion",
+        "precio",
+        "descripcion",
+        "nomenclatura",
+        "estado",
+        "memoria",
+        "fecha_inicio",
+        "fecha_finalizacion",
+        "portada",
+        "id_cliente"
+    ];
 
-        foreach ($campos as $campo) {
+    foreach ($campos as $campo) {
 
-            if (!array_key_exists($campo, $datos)) {
-                Response::json([
-                    "error" => "Falta el campo: " . $campo
-                ], 400);
-                return;
-            }
-        }
-
-        // Crear el proyecto.
-        $id_obra = $this->modelo->create(
-            $datos["titulo"],
-            $datos["superficie"],
-            $datos["ubicacion"],
-            $datos["precio"],
-            $datos["descripcion"],
-            $datos["nomenclatura"],
-            $datos["estado"],
-            $datos["memoria"],
-            $datos["fecha_inicio"],
-            $datos["fecha_finalizacion"],
-            $datos["portada"]
-        );
-
-        if (!$id_obra) {
+        if (!isset($datos[$campo]) || $datos[$campo] === "") {
             Response::json([
-                "error" => "No se pudo crear el proyecto"
-            ], 500);
+                "error" => "Falta el campo: " . $campo
+            ], 400);
             return;
         }
-
-        Response::json([
-            "mensaje" => "Proyecto creado correctamente",
-            "id_obra" => $id_obra
-        ], 201);
     }
 
-    // PUT /proyectos/{id}
-    public function editar($id, $datos) {
-
-        $proyecto = $this->modelo->getByid_obra($id);
-
-        if (!$proyecto) {
-            Response::json([
-                "error" => "Proyecto no encontrado"
-            ], 404);
-            return;
-        }
-
-        $actualizado = $this->modelo->update($id, $datos);
-
-        if (!$actualizado) {
-            Response::json([
-                "error" => "No se pudo actualizar el proyecto"
-            ], 500);
-            return;
-        }
+    // Validar el ID del cliente.
+    if (!filter_var($datos["id_cliente"], FILTER_VALIDATE_INT) ||
+        (int)$datos["id_cliente"] <= 0) {
 
         Response::json([
-            "mensaje" => "Proyecto actualizado"
-        ], 200);
+            "error" => "Debe seleccionar un cliente válido"
+        ], 400);
+        return;
     }
+
+    // Comprobar que el cliente exista.
+    if (!$this->modelo->existeCliente($datos["id_cliente"])) {
+
+        Response::json([
+            "error" => "El cliente seleccionado no existe"
+        ], 404);
+        return;
+    }
+
+    // Crear el proyecto.
+    $id_obra = $this->modelo->create(
+        $datos["titulo"],
+        $datos["superficie"],
+        $datos["ubicacion"],
+        $datos["precio"],
+        $datos["descripcion"],
+        $datos["nomenclatura"],
+        $datos["estado"],
+        $datos["memoria"],
+        $datos["fecha_inicio"],
+        $datos["fecha_finalizacion"],
+        $datos["portada"],
+        $datos["id_cliente"]
+    );
+
+    if (!$id_obra) {
+        Response::json([
+            "error" => "No se pudo crear el proyecto"
+        ], 500);
+        return;
+    }
+
+    Response::json([
+        "mensaje" => "Proyecto creado correctamente",
+        "id_obra" => $id_obra
+    ], 201);
+}
+
+  // PUT /proyectos/{id}
+public function editar($id, $datos) {
+
+    $proyecto = $this->modelo->getByid_obra($id);
+
+    if (!$proyecto) {
+        Response::json([
+            "error" => "Proyecto no encontrado"
+        ], 404);
+        return;
+    }
+
+    // Verificar que se envíe un cliente.
+    if (
+        !isset($datos["id_cliente"]) ||
+        $datos["id_cliente"] === "" ||
+        !filter_var($datos["id_cliente"], FILTER_VALIDATE_INT) ||
+        (int)$datos["id_cliente"] <= 0
+    ) {
+        Response::json([
+            "error" => "Debe seleccionar un cliente válido"
+        ], 400);
+        return;
+    }
+
+    // Comprobar que el cliente exista.
+    if (!$this->modelo->existeCliente($datos["id_cliente"])) {
+
+        Response::json([
+            "error" => "El cliente seleccionado no existe"
+        ], 404);
+        return;
+    }
+
+    $actualizado = $this->modelo->update($id, $datos);
+
+    if (!$actualizado) {
+        Response::json([
+            "error" => "No se pudo actualizar el proyecto"
+        ], 500);
+        return;
+    }
+
+    Response::json([
+        "mensaje" => "Proyecto actualizado"
+    ], 200);
+}
 
     // DELETE /proyectos/{id}
     public function eliminar($id) {
@@ -305,4 +350,119 @@ class ProyectosController {
             "mensaje" => "Visibilidad del catálogo actualizada"
         ], 200);
     }
+
+   public function subirFotosExtra($id_obra) {
+
+    $proyecto = $this->modelo->getByid_obra($id_obra);
+
+    if (!$proyecto) {
+        Response::json(["error" => "El proyecto no existe"], 404);
+        return;
+    }
+if (!isset($_FILES["fotosExtra"]) || !isset($_POST["ordenes"])) {
+    Response::json([
+        "error" => "Faltan datos",
+        "files" => $_FILES,
+        "post" => $_POST,
+        "content_type" => $_SERVER["CONTENT_TYPE"] ?? null
+    ], 400);
+    return;
+}
+
+    $fotos = $_FILES["fotosExtra"];
+    $ordenes = $_POST["ordenes"];
+
+    if (!is_array($ordenes) || count($fotos["name"]) !== count($ordenes)) {
+        Response::json(["error" => "Los archivos y sus órdenes no coinciden"], 400);
+        return;
+    }
+
+    $carpeta = __DIR__ . "/../public/uploads/proyectosImg/";
+
+    if (!is_dir($carpeta)) {
+        mkdir($carpeta, 0755, true);
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+
+    $tiposPermitidos = [
+        "image/jpeg" => "jpg",
+        "image/png" => "png",
+        "image/webp" => "webp"
+    ];
+
+    $fotosGuardadas = [];
+
+    for ($i = 0; $i < count($fotos["name"]); $i++) {
+
+        $orden = (int) $ordenes[$i];
+
+        // Comprobar que la posición sea válida.
+        if ($orden < 1 || $orden > 4) {
+            Response::json(["error" => "Orden de imagen no válido"], 400);
+            return;
+        }
+
+        if ($fotos["error"][$i] !== UPLOAD_ERR_OK) {
+            Response::json(["error" => "Error al recibir una imagen"], 400);
+            return;
+        }
+
+        if ($fotos["size"][$i] > 10 * 1024 * 1024) {
+            Response::json(["error" => "Cada imagen debe pesar menos de 10 MB"], 400);
+            return;
+        }
+
+        $tipo = $finfo->file($fotos["tmp_name"][$i]);
+
+        if (!isset($tiposPermitidos[$tipo])) {
+            Response::json(["error" => "Formato de imagen no permitido"], 400);
+            return;
+        }
+
+        $extension = $tiposPermitidos[$tipo];
+
+        $nombre = bin2hex(random_bytes(16)) . "." . $extension;
+
+        $rutaCompleta = $carpeta . $nombre;
+        $rutaBD = "uploads/proyectosImg/" . $nombre;
+
+        if (!move_uploaded_file($fotos["tmp_name"][$i], $rutaCompleta)) {
+            Response::json(["error" => "No se pudo guardar una imagen"], 500);
+            return;
+        }
+
+        // Actualizar únicamente la imagen de esa posición.
+        $actualizada = $this->modelo->actualizarFoto(
+            $id_obra,
+            $orden,
+            $rutaBD
+        );
+
+        if (!$actualizada) {
+            unlink($rutaCompleta);
+
+            Response::json([
+                "error" => "No se pudo actualizar la imagen número " . $orden
+            ], 500);
+            return;
+        }
+
+        $fotosGuardadas[] = [
+            "orden" => $orden,
+            "url" => $rutaBD
+        ];
+    }
+
+    Response::json([
+        "mensaje" => "Imágenes actualizadas correctamente",
+        "fotos" => $fotosGuardadas
+    ], 200);
+}
+public function listarPorCliente($id_cliente) {
+        $proyectos = $this->modelo->getByCliente($id_cliente);
+        Response::json($proyectos, 200);
+    }
+
+
 }
