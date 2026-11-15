@@ -1,3 +1,4 @@
+
 <?php
 require_once __DIR__ . "/../controllers/ProveedoresController.php";
 
@@ -16,18 +17,18 @@ $partes = explode('/', $path);
 $recurso = $partes[0] ?? null;
 $idOParametro = $partes[1] ?? null;
 
-// Si la ruta pertenece a clientes, limpiamos la salida previa de otros archivos
+// Si la ruta pertenece a proveedores
 if ($recurso === "proveedores") {
-    // Si algún archivo previo (como routes.php) imprimió un error, borramos la salida previa
+
     if (ob_get_length()) {
         ob_clean();
     }
 
-    $controller = new ClientesController();
+    $controller = new ProveedoresController();
 
     if ($metodo === "GET" && $idOParametro === null) {
         $controller->listarProveedores();
-    } elseif ($metodo === "GET") {     
+    } elseif ($metodo === "GET") {
         $controller->verUnProveedor($idOParametro);
     } elseif ($metodo === "POST") {
         $datos = json_decode(file_get_contents("php://input"), true);
@@ -38,8 +39,7 @@ if ($recurso === "proveedores") {
     } elseif ($metodo === "DELETE") {
         $controller->eliminarProveedor($idOParametro);
     }
-    
-    // Finalizamos la ejecución para evitar que se sigan procesando otros scripts
+
     exit;
 }
 ?>
