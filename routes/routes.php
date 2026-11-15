@@ -90,7 +90,18 @@ if (
     exit;
 }
 
+// GET /proyectos/cliente/{id_cliente}
+if (
+    count($ruta) === 3 &&
+    $ruta[1] === "cliente" &&
+    ctype_digit($ruta[2]) &&
+    $metodo === "GET"
+) {
+    $id_cliente = (int) $ruta[2];
 
+    $controller->listarPorCliente($id_cliente);
+    exit;
+}
 
 
     // Comprobar el ID para las rutas siguientes.

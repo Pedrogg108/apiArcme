@@ -33,7 +33,7 @@ class ProyectosController {
 
     Response::json($proyecto, 200);
     }
-    // POST /proyectos
+  
     // POST /proyectos
 public function crear($datos) {
 
@@ -105,6 +105,7 @@ public function crear($datos) {
         return;
     }
 
+    
     Response::json([
         "mensaje" => "Proyecto creado correctamente",
         "id_obra" => $id_obra
