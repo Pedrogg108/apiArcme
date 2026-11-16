@@ -31,7 +31,7 @@ class Proveedor extends Model {
         return $proveedor;
     }
 
-    public function create($id_obra, $proveedor, $contacto, $telefono, $correo, $ciudad, $direccion, $descripcion, $categoria, $productos = []) {
+    public function create( $proveedor, $nombre_contacto, $telefono, $correo, $ciudad, $direccion, $descripcion, $categoria, $productos = []) {
 
         try {
 
@@ -39,15 +39,17 @@ class Proveedor extends Model {
             $this->pdo->beginTransaction();
 
             // Guardamos el proveedor.
-            $sql = "INSERT INTO proveedores (id_obra, proveedor, contacto, telefono, correo, ciudad, direccion, descripcion, categoria)
-                    VALUES (:id_obra, :proveedor, :contacto, :telefono, :correo, :ciudad, :direccion, :descripcion, :categoria)";
+            $sql = "INSERT INTO proveedores ( proveedor, nombre_contacto, telefono, correo, ciudad, direccion, descripcion, categoria)
+                    VALUES ( :proveedor, :nombre_contacto, :telefono, :correo, :ciudad, :direccion, :descripcion, :categoria)";
 
+
+//id_obra iria en insert into y values pero no anda.
             $stmt = $this->pdo->prepare($sql);
 
             $stmt->execute([
-                "id_obra" => $id_obra,
+                // "id_obra" => $id_obra,
                 "proveedor" => $proveedor,
-                "contacto" => $contacto,
+                "nombre_contacto" => $nombre_contacto,
                 "telefono" => $telefono,
                 "correo" => $correo,
                 "ciudad" => $ciudad,
@@ -101,9 +103,9 @@ class Proveedor extends Model {
 
             // Actualizamos los datos del proveedor.
             $sql = "UPDATE proveedores SET
-                    id_obra = :id_obra,
+                    -- id_obra = :id_obra,
                     proveedor = :proveedor,
-                    contacto = :contacto,
+                    nombre_contacto = :nombre_contacto,
                     telefono = :telefono,
                     correo = :correo,
                     ciudad = :ciudad,
@@ -116,9 +118,9 @@ class Proveedor extends Model {
 
             $stmt->execute([
                 "id_proveedores" => $id_proveedores,
-                "id_obra" => $datos["id_obra"],
+                // "id_obra" => $datos["id_obra"],
                 "proveedor" => $datos["proveedor"],
-                "contacto" => $datos["contacto"],
+                "nombre_contacto" => $datos["nombre_contacto"],
                 "telefono" => $datos["telefono"],
                 "correo" => $datos["correo"],
                 "ciudad" => $datos["ciudad"],

@@ -1,4 +1,3 @@
-
 <?php
 
 require_once __DIR__ . "/../models/Proveedores.php";
@@ -19,7 +18,6 @@ class ProveedoresController {
 
     // GET /proveedores/{id}
     public function verUnProveedor($id) {
-
         $proveedor = $this->modelo->getByid_proveedor($id);
 
         if ($proveedor) {
@@ -31,13 +29,10 @@ class ProveedoresController {
 
     // POST /proveedores
     public function crearProveedor($datos) {
-
         try {
-
             $idProveedor = $this->modelo->create(
-                $datos["id_obra"],
                 $datos["proveedor"],
-                $datos["contacto"],
+                $datos["nombre_contacto"],
                 $datos["telefono"],
                 $datos["correo"],
                 $datos["ciudad"],
@@ -53,20 +48,16 @@ class ProveedoresController {
             ], 201);
 
         } catch (Exception $e) {
-
             Response::json([
                 "error" => "No se pudo crear el proveedor",
                 "detalle" => $e->getMessage()
             ], 500);
-
         }
     }
 
     // PUT /proveedores/{id}
     public function editarProveedor($id, $datos) {
-
         try {
-
             $this->modelo->update($id, $datos);
 
             Response::json([
@@ -74,18 +65,15 @@ class ProveedoresController {
             ], 200);
 
         } catch (Exception $e) {
-
             Response::json([
                 "error" => "No se pudo actualizar el proveedor",
                 "detalle" => $e->getMessage()
             ], 500);
-
         }
     }
 
     // DELETE /proveedores/{id}
     public function eliminarProveedor($id) {
-
         $this->modelo->delete($id);
 
         Response::json([
@@ -94,5 +82,4 @@ class ProveedoresController {
     }
 
 }
-
 ?>
